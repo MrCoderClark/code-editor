@@ -1,9 +1,11 @@
-import Image from "next/image";
+"use client";
+
+import UserButton from "@/features/auth/components/user-button";
 
 export default function Home() {
   return (
     <div className="">
-      Home
+      <UserButton />
     </div>
   );
 }
