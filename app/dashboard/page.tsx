@@ -1,13 +1,8 @@
 import EmptyState from "@/components/empty-state";
-import {
-  deleteProjectById,
-  duplicateProjectById,
-  editProjectById,
-  getAllPlaygroundForUser,
-} from "@/features/dashboard/actions";
+import { getAllPlaygroundForUser } from "@/features/dashboard/actions";
 import AddNewButton from "@/features/dashboard/components/add-new-button";
 import AddRepoButton from "@/features/dashboard/components/add-repo";
-import ProjectTable from "@/features/dashboard/components/project-table";
+import ProjectTableWrapper from "@/features/dashboard/components/project-table-wrapper";
 
 const Page = async () => {
   const playgroundsData = await getAllPlaygroundForUser();
@@ -36,14 +31,7 @@ const Page = async () => {
             imageSrc="/empty-state.svg"
           />
         ) : (
-          <ProjectTable
-            projects={playgrounds || []}
-            onDeleteProject={deleteProjectById}
-            onUpdateProject={editProjectById}
-            onDuplicateProject={async (id: string) => {
-              await duplicateProjectById(id);
-            }}
-          />
+          <ProjectTableWrapper projects={playgrounds || []} />
         )}
       </div>
     </div>
