@@ -3,6 +3,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import type { Metadata } from "next";
 import { SessionProvider } from "next-auth/react";
 import { Poppins } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -32,6 +33,7 @@ export default async function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
+            <Toaster />
             {children}
           </ThemeProvider>
         </body>
