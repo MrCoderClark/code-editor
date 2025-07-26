@@ -112,6 +112,15 @@ export function TemplateFileTree({
   onRenameFile,
   onRenameFolder,
 }: TemplateFileTreeProps) {
+  console.log("=== TEMPLATE FILE TREE RENDER ===");
+  console.log("Data received:", data);
+  console.log("Data type:", typeof data);
+  if (data && typeof data === "object" && "items" in data) {
+    console.log("Data.items:", data.items);
+    console.log("Data.items type:", typeof data.items);
+  }
+  console.log("=== END TEMPLATE FILE TREE RENDER ===");
+  
   const isRootFolder = data && typeof data === "object" && "folderName" in data;
   const [isNewFileDialogOpen, setIsNewFileDialogOpen] = React.useState(false);
   const [isNewFolderDialogOpen, setIsNewFolderDialogOpen] =
@@ -173,7 +182,7 @@ export function TemplateFileTree({
           <SidebarGroupContent>
             <SidebarMenu>
               {isRootFolder ? (
-                (data as TemplateFolder).items.map((child, index) => (
+                (data as TemplateFolder).items && (data as TemplateFolder).items.map((child, index) => (
                   <TemplateNode
                     key={index}
                     item={child}
@@ -374,8 +383,18 @@ function TemplateNode({
     );
   } else {
     const folder = item as TemplateFolder;
+    
+    // Add comprehensive null checking
+    if (!folder || !folder.folderName) {
+      console.error('Invalid folder data:', folder);
+      return null;
+    }
+    
     const folderName = folder.folderName;
     const currentPath = path ? `${path}/${folderName}` : folderName;
+    
+    // Ensure items array exists and is valid
+    const folderItems = folder.items || [];
 
     const handleAddFile = () => {
       setIsNewFileDialogOpen(true);
@@ -480,7 +499,7 @@ function TemplateNode({
 
           <CollapsibleContent>
             <SidebarMenuSub>
-              {folder.items.map((childItem, index) => (
+              {folderItems.map((childItem, index) => (
                 <TemplateNode
                   key={index}
                   item={childItem}

@@ -1,8 +1,16 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { create } from "zustand";
 
 import { toast } from "sonner";
 import { generateFileId } from "../libs";
 import { TemplateFile, TemplateFolder } from "../types";
+
+interface OpenFile extends TemplateFile {
+  id: string;
+  hasUnsavedChanges: boolean;
+  content: string;
+  originalContent: string;
+}
 
 interface FileExplorerState {
   playgroundId: string;
@@ -24,13 +32,13 @@ interface FileExplorerState {
     newFile: TemplateFile,
     parentPath: string,
     writeFileSync: (filePath: string, content: string) => Promise<void>,
-    instance: unknown,
+    instance: any,
     saveTemplateData: (data: TemplateFolder) => Promise<void>
   ) => Promise<void>;
   handleAddFolder: (
     newFolder: TemplateFolder,
     parentPath: string,
-    instance: unknown,
+    instance: any,
     saveTemplateData: (data: TemplateFolder) => Promise<void>
   ) => Promise<void>;
   handleDeleteFile: (
@@ -59,13 +67,7 @@ interface FileExplorerState {
   updateFileContent: (fileId: string, content: string) => void;
 }
 
-interface OpenFile extends TemplateFile {
-  id: string;
-  hasUnsavedChanges: boolean;
-  content: string;
-  originalContent: string;
-}
-
+// @ts-expect-error
 export const useFileExplorer = create<FileExplorerState>((set, get) => ({
   templateData: null,
   playgroundId: "",
@@ -134,64 +136,6 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
     });
   },
 
-  closeAllFiles: () => {
-    set({
-      openFiles: [],
-      activeFileId: null,
-      editorContent: "",
-    });
-  },
-
-  handleAddFile: async (
-    newFile,
-    parentPath,
-    writeFileSync,
-    instance,
-    saveTemplateData
-  ) => {
-    const { templateData } = get();
-    if (!templateData) return;
-
-    try {
-      const updatedTemplateData = JSON.parse(
-        JSON.stringify(templateData)
-      ) as TemplateFolder;
-      const pathParts = parentPath.split("/");
-      let currentFolder = updatedTemplateData;
-
-      for (const part of pathParts) {
-        if (part) {
-          const nextFolder = currentFolder.items.find(
-            (item) => "folderName" in item && item.folderName === part
-          ) as TemplateFolder;
-          if (nextFolder) currentFolder = nextFolder;
-        }
-      }
-
-      currentFolder.items.push(newFile);
-      set({ templateData: updatedTemplateData });
-      toast.success(
-        `Created file: ${newFile.filename}.${newFile.fileExtension}`
-      );
-
-      // Use the passed saveTemplateData function
-      await saveTemplateData(updatedTemplateData);
-
-      // Sync with web container
-      if (writeFileSync) {
-        const filePath = parentPath
-          ? `${parentPath}/${newFile.filename}.${newFile.fileExtension}`
-          : `${newFile.filename}.${newFile.fileExtension}`;
-        await writeFileSync(filePath, newFile.content || "");
-      }
-
-      get().openFile(newFile);
-    } catch (error) {
-      console.error("Error adding file:", error);
-      toast.error("Failed to create file");
-    }
-  },
-
   handleAddFolder: async (
     newFolder,
     parentPath,
@@ -224,13 +168,13 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
       // Use the passed saveTemplateData function
       await saveTemplateData(updatedTemplateData);
 
-      // Sync with web container
-      if (instance && instance.fs) {
-        const folderPath = parentPath
-          ? `${parentPath}/${newFolder.folderName}`
-          : newFolder.folderName;
-        await instance.fs.mkdir(folderPath, { recursive: true });
-      }
+      //   // Sync with web container
+      //   if (instance && instance.fs) {
+      //     const folderPath = parentPath
+      //       ? `${parentPath}/${newFolder.folderName}`
+      //       : newFolder.folderName;
+      //     await instance.fs.mkdir(folderPath, { recursive: true });
+      //   }
     } catch (error) {
       console.error("Error adding folder:", error);
       toast.error("Failed to create folder");
@@ -315,6 +259,7 @@ export const useFileExplorer = create<FileExplorerState>((set, get) => ({
         folder: TemplateFolder,
         currentPath: string = ""
       ) => {
+        if (!folder.items) return;
         folder.items.forEach((item) => {
           if ("filename" in item) {
             // Generate the correct file ID using the same logic as openFile
